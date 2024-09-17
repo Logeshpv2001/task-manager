@@ -1,21 +1,33 @@
+// src/TaskList.js
 import React from 'react';
+import { updateTask, deleteTask } from './redux/tasksSlice';
+import { useSelector, useDispatch } from 'react-redux';
 import TaskItem from './TaskItem';
+import { List, Typography } from 'antd';
 
-const TaskList = ({ tasks, updateTask, deleteTask }) => {
+const { Title } = Typography;
+
+const TaskList = () => {
+  const tasks = useSelector(state => state.tasks.tasks);
+  const dispatch = useDispatch();
+
   return (
-    <ul className="list-none p-0">
-      {tasks.sort((a, b) => {
-        if (a.dueDate !== b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
-        return a.priority.localeCompare(b.priority);
-      }).map(task => (
-        <TaskItem
-          key={task.id}
-          task={task}
-          updateTask={updateTask}
-          deleteTask={deleteTask}
-        />
-      ))}
-    </ul>
+    <div>
+      <Title level={3}>Task List</Title>
+      <List
+        itemLayout="vertical"
+        size="large"
+        dataSource={tasks}
+        renderItem={task => (
+          <TaskItem
+            key={task.id}
+            task={task}
+            updateTask={(updatedTask) => dispatch(updateTask(updatedTask))}
+            deleteTask={(id) => dispatch(deleteTask(id))}
+          />
+        )}
+      />
+    </div>
   );
 };
 

@@ -1,85 +1,130 @@
+// src/TaskItem.js
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { Button, Card, Form, Input, Select, DatePicker, Typography } from 'antd';
+import { updateTask } from './redux/tasksSlice';
+import moment from 'moment';
 
-const TaskItem = ({ task, updateTask, deleteTask }) => {
+const { Text } = Typography;
+const { Option } = Select;
+
+const TaskItem = ({ task, deleteTask }) => {
+  const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
-  const [title, setTitle] = useState(task.title);
-  const [description, setDescription] = useState(task.description);
-  const [dueDate, setDueDate] = useState(task.dueDate);
-  const [priority, setPriority] = useState(task.priority);
-  const [status, setStatus] = useState(task.status);
+  const [form] = Form.useForm();
 
-  const handleSave = () => {
-    updateTask({ ...task, title, description, dueDate, priority, status });
+  const handleSave = (values) => {
+    dispatch(updateTask({
+      ...task,
+      ...values,
+      dueDate: values.dueDate ? values.dueDate.format('YYYY-MM-DD') : task.dueDate
+    }));
     setIsEditing(false);
   };
 
+  const handleEditClick = () => {
+    form.setFieldsValue({
+      ...task,
+      dueDate: task.dueDate ? moment(task.dueDate) : null
+    });
+    setIsEditing(true);
+  };
+
+  const handleCancelClick = () => {
+    setIsEditing(false);
+  };
+
+  const handleDeleteClick = () => {
+    deleteTask(task.id);
+  };
+
   return (
-    <li className="mb-4 p-4 border border-gray-300 rounded">
+    <Card>
       {isEditing ? (
-        <div>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="border border-gray-300 p-2 rounded mb-2 w-full"
-          />
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="border border-gray-300 p-2 rounded mb-2 w-full"
-          />
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="border border-gray-300 p-2 rounded mb-2 w-full"
-          />
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className="border border-gray-300 p-2 rounded mb-2 w-full"
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={{
+            ...task,
+            dueDate: task.dueDate ? moment(task.dueDate) : null
+          }}
+          onFinish={handleSave}
+        >
+          <Form.Item
+            name="title"
+            label="Title"
+            rules={[{ required: true, message: 'Please input the title!' }]}
           >
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="border border-gray-300 p-2 rounded mb-2 w-full"
+            <Input />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[{ required: true, message: 'Please input the description!' }]}
           >
-            <option value="In Progress">In Progress</option>
-            <option value="Completed">Completed</option>
-          </select>
-          <button
-            onClick={handleSave}
-            className="bg-green-500 text-white p-2 rounded w-full"
+            <Input.TextArea />
+          </Form.Item>
+          <Form.Item
+            name="dueDate"
+            label="Due Date"
+            rules={[{ required: true, message: 'Please select the due date!' }]}
           >
-            Save
-          </button>
-        </div>
+            <DatePicker className="w-full" />
+          </Form.Item>
+          <Form.Item
+            name="priority"
+            label="Priority"
+            rules={[{ required: true, message: 'Please select the priority!' }]}
+          >
+            <Select>
+              <Option value="Low">Low</Option>
+              <Option value="Medium">Medium</Option>
+              <Option value="High">High</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: 'Please select the status!' }]}
+          >
+            <Select>
+              <Option value="In Progress">In Progress</Option>
+              <Option value="Completed">Completed</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" className="mr-2">
+              Save
+            </Button>
+            <Button onClick={handleCancelClick}>
+              Cancel
+            </Button>
+          </Form.Item>
+        </Form>
       ) : (
         <div>
-          <h3 className="text-xl font-semibold">{task.title}</h3>
-          <p className="mb-2">{task.description}</p>
-          <p className="mb-2">Due Date: {task.dueDate}</p>
-          <p className="mb-2">Priority: <span className={`font-bold ${task.priority === 'High' ? 'text-red-500' : task.priority === 'Medium' ? 'text-yellow-500' : 'text-green-500'}`}>{task.priority}</span></p>
-          <p className="mb-2">Status: <span className={`font-bold ${task.status === 'Completed' ? 'text-green-500' : 'text-orange-500'}`}>{task.status}</span></p>
-          <button
-            onClick={() => setIsEditing(true)}
-            className="bg-blue-500 text-white p-2 rounded mr-2"
+          <Text strong>Task Title: {task.title}</Text>
+          <p>Task Description: {task.description}</p>
+          <p>Due Date: {task.dueDate ? moment(task.dueDate).format('MMMM D, YYYY') : 'N/A'}</p>
+          <p>Priority: <span className={`font-bold ${task.priority === 'High' ? 'text-red-500' : task.priority === 'Medium' ? 'text-yellow-500' : 'text-green-500'}`}>{task.priority}</span></p>
+          <p>Status: <span className={`font-bold ${task.status === 'Completed' ? 'text-green-500' : 'text-orange-500'}`}>{task.status}</span></p>
+          <Button
+            type="link"
+            onClick={handleEditClick}
+            className="mr-2"
           >
             Edit
-          </button>
-          <button
-            onClick={() => deleteTask(task.id)}
-            className="bg-red-500 text-white p-2 rounded"
+          </Button>
+          <Button
+            type="link"
+            danger
+            onClick={handleDeleteClick}
           >
             Delete
-          </button>
+          </Button>
         </div>
       )}
-    </li>
+    </Card>
   );
 };
 

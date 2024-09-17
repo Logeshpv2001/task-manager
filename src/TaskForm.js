@@ -1,70 +1,77 @@
+// src/TaskForm.js
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { addTask } from './redux/tasksSlice';
+import { Button, DatePicker, Form, Input, Select, Typography } from 'antd';
+import { v4 as uuidv4 } from 'uuid';
 
-const TaskForm = ({ addTask }) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState('');
-  const [priority, setPriority] = useState('Medium');
-  const [status, setStatus] = useState('In Progress');
+const { Text } = Typography;
+const { Option } = Select;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    addTask({ title, description, dueDate, priority, status });
-    setTitle('');
-    setDescription('');
-    setDueDate('');
-    setPriority('Medium');
-    setStatus('In Progress');
+const TaskForm = () => {
+  const dispatch = useDispatch();
+  const [form] = Form.useForm();
+
+  const onFinish = (values) => {
+    dispatch(addTask({ ...values, id: uuidv4() }));
+    form.resetFields();
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mb-4 p-4 border border-gray-300 rounded">
-      <input
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        required
-        className="border border-gray-300 p-2 rounded mb-2 w-full"
-      />
-      <textarea
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        required
-        className="border border-gray-300 p-2 rounded mb-2 w-full"
-      />
-      <input
-        type="date"
-        value={dueDate}
-        onChange={(e) => setDueDate(e.target.value)}
-        required
-        className="border border-gray-300 p-2 rounded mb-2 w-full"
-      />
-      <select
-        value={priority}
-        onChange={(e) => setPriority(e.target.value)}
-        className="border border-gray-300 p-2 rounded mb-2 w-full"
+    <Form
+      form={form}
+      layout="vertical"
+      onFinish={onFinish}
+      className="mb-4 p-4 border border-gray-300 rounded"
+    >
+      <Form.Item
+        label="Title"
+        name="title"
+        rules={[{ required: true, message: 'Please input the title!' }]}
       >
-        <option value="Low">Low</option>
-        <option value="Medium">Medium</option>
-        <option value="High">High</option>
-      </select>
-      <select
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
-        className="border border-gray-300 p-2 rounded mb-2 w-full"
+        <Input placeholder="Task Title" />
+      </Form.Item>
+      <Form.Item
+        label="Description"
+        name="description"
+        rules={[{ required: true, message: 'Please input the description!' }]}
       >
-        <option value="In Progress">In Progress</option>
-        <option value="Completed">Completed</option>
-      </select>
-      <button
-        type="submit"
-        className="bg-blue-500 text-white p-2 rounded w-full"
+        <Input.TextArea placeholder="Task Description" />
+      </Form.Item>
+      <Form.Item
+        label="Due Date"
+        name="dueDate"
+        rules={[{ required: true, message: 'Please select the due date!' }]}
       >
-        Add Task
-      </button>
-    </form>
+        <DatePicker className="w-full" />
+      </Form.Item>
+      <Form.Item
+        label="Priority"
+        name="priority"
+        rules={[{ required: true, message: 'Please select the priority!' }]}
+      >
+        <Select>
+          <Option value="Low">Low</Option>
+          <Option value="Medium">Medium</Option>
+          <Option value="High">High</Option>
+        </Select>
+      </Form.Item>
+      <Form.Item
+        label="Status"
+        name="status"
+        rules={[{ required: true, message: 'Please select the status!' }]}
+      >
+        <Select>
+          <Option value="In Progress">In Progress</Option>
+          <Option value="Completed">Completed</Option>
+        </Select>
+      </Form.Item>
+      <Form.Item>
+        <Button type="primary" htmlType="submit">
+          Add Task
+        </Button>
+      </Form.Item>
+    </Form>
   );
 };
 
